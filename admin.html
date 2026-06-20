@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Roadbound</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f3efe6; }
+    .admin-card { background: white; padding: 1rem; margin-bottom: 1rem; border: 1px solid #ccc; display: flex; justify-content: space-between; max-width: 400px;}
+    button { padding: 0.5rem 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Fleet Admin Dashboard</h1>
+  <div id="admin-panel"></div>
+
+  <script>
+    // The master list of cars
+    const cars = ["City Hatch", "Highway Sedan", "Trailhead SUV", "Backroad Pickup", "Coastline Convertible", "Family Minivan", "Volt Electric"];
+    const panel = document.getElementById('admin-panel');
+    
+    // Load existing data or create an empty slate
+    let fleetData = JSON.parse(localStorage.getItem('roadboundFleet')) || {};
+
+    function renderAdmin() {
+      panel.innerHTML = '';
+      cars.forEach(car => {
+        // Default to true if not set yet
+        const isAvailable = fleetData[car] !== undefined ? fleetData[car] : true; 
+        
+        panel.innerHTML += `
+          <div class="admin-card">
+            <span><strong>${car}</strong> - ${isAvailable ? 'Available' : 'Booked'}</span>
+            <button onclick="toggleStatus('${car}')">
+              Mark ${isAvailable ? 'Unavailable' : 'Available'}
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    // Toggle the data and save it to the browser
+    window.toggleStatus = function(carName) {
+      const currentState = fleetData[carName] !== undefined ? fleetData[carName] : true;
+      fleetData[carName] = !currentState; 
+      
+      // Save back to storage
+      localStorage.setItem('roadboundFleet', JSON.stringify(fleetData));
+      renderAdmin(); // Refresh the admin UI
+    };
+
+    renderAdmin();
+  </script>
+</body>
+</html>

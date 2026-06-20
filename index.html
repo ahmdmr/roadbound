@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadbound — Car Rentals</title>
+<style>
+  :root{
+    --asphalt:#1c1f1d;
+    --cream:#f3efe6;
+    --rust:#c1571f;
+    --moss:#4c5d44;
+    --line:#d8d2c2;
+    --display: "Georgia", "Times New Roman", serif;
+    --body: "Helvetica Neue", Arial, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--cream);
+    color:var(--asphalt);
+    font-family:var(--body);
+  }
+  header{
+    min-height:90vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:flex-start;
+    padding:6vw 8vw;
+    background: linear-gradient(180deg, #f7f4ec 0%, var(--cream) 100%);
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:var(--body);
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    font-size:0.75rem;
+    color:var(--moss);
+    margin-bottom:1.2rem;
+    font-weight:600;
+  }
+  h1{
+    font-family:var(--display);
+    font-size:clamp(3rem, 9vw, 6.5rem);
+    line-height:0.95;
+    max-width:14ch;
+    color:var(--asphalt);
+  }
+  h1 span{ color:var(--rust); font-style:italic; }
+  .sub{
+    margin-top:1.6rem;
+    max-width:36ch;
+    font-size:1.05rem;
+    line-height:1.5;
+    color:#4a4a44;
+  }
+  .browse-btn{
+    margin-top:2.8rem;
+    background:var(--asphalt);
+    color:var(--cream);
+    border:none;
+    padding:1rem 2.2rem;
+    font-size:1rem;
+    font-weight:600;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:0.6rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .browse-btn:hover{
+    background:var(--rust);
+    transform:translateY(-2px);
+  }
+  .browse-btn:focus-visible{
+    outline:3px solid var(--moss);
+    outline-offset:3px;
+  }
+  .browse-btn svg{
+    transition: transform 0.2s ease;
+  }
+  .browse-btn:hover svg{
+    transform: translateY(3px);
+  }
+
+  section#fleet{
+    padding:6vw 8vw 8vw;
+  }
+  .fleet-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px solid var(--asphalt);
+    padding-bottom:1.2rem;
+    margin-bottom:3rem;
+    flex-wrap:wrap;
+    gap:1rem;
+  }
+  .fleet-head h2{
+    font-family:var(--display);
+    font-size:2.4rem;
+    font-style:italic;
+  }
+  .fleet-head p{
+    font-size:0.85rem;
+    color:#6a6a62;
+    letter-spacing:0.05em;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:2.2rem;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+    cursor:pointer;
+  }
+  .card:hover{
+    box-shadow: 0 14px 30px -10px rgba(28,31,29,0.25);
+    transform: translateY(-4px);
+  }
+  .card:focus-visible{
+    outline:3px solid var(--moss);
+    outline-offset:3px;
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:var(--cream);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(30px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    z-index:100;
+  }
+  .overlay.open{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+  }
+  .modal{
+    width:100%;
+    height:100%;
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+  }
+  .modal-img{
+    height:100%;
+    position:relative;
+  }
+  .modal-img img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .modal-close{
+    position:absolute;
+    top:2rem;
+    right:2rem;
+    background:rgba(28,31,29,0.7);
+    color:#fff;
+    border:none;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    font-size:1.4rem;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2;
+  }
+  .modal-body{
+    padding:4rem;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .modal-body .eyebrow{ margin-bottom:1rem; }
+  .modal-body h3{
+    font-family:var(--display);
+    font-size:3rem;
+    margin-bottom:1rem;
+    line-height:1.05;
+  }
+  .modal-body .card-meta{
+    font-size:1rem;
+    margin-bottom:2rem;
+  }
+  .modal-body .price-row{
+    border-top:1px dashed var(--line);
+    padding-top:1.5rem;
+  }
+  .modal-body .price{
+    font-size:2rem;
+  }
+  .modal-body .reserve-btn{
+    padding:0.8rem 1.8rem;
+    font-size:0.9rem;
+  }
+
+  @media (max-width:760px){
+    .modal{
+      grid-template-columns:1fr;
+      grid-template-rows:45% 55%;
+    }
+    .modal-body{ padding:2rem; }
+    .modal-body h3{ font-size:2rem; }
+  }
+  .card-img{
+    height:190px;
+    overflow:hidden;
+    position:relative;
+    background:var(--cream);
+  }
+  .card-img img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .status{
+    position:absolute;
+    top:0.8rem;
+    right:0.8rem;
+    font-size:0.7rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    font-weight:700;
+    padding:0.3rem 0.7rem;
+    border-radius:2px;
+    color:#fff;
+  }
+  .status.available{ background:var(--moss); }
+  .status.unavailable{ background:#9a3324; }
+
+  .card-body{
+    padding:1.4rem 1.4rem 1.6rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.5rem;
+    flex:1;
+  }
+  .card-body h3{
+    font-family:var(--display);
+    font-size:1.3rem;
+  }
+  .card-meta{
+    font-size:0.8rem;
+    color:#7a7a72;
+    letter-spacing:0.02em;
+  }
+  .price-row{
+    margin-top:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:1rem;
+    border-top:1px dashed var(--line);
+  }
+  .price{
+    font-family:var(--display);
+    font-size:1.4rem;
+    color:var(--asphalt);
+  }
+  .price span{
+    font-family:var(--body);
+    font-size:0.75rem;
+    color:#8a8a82;
+  }
+  .reserve-btn{
+  background-color: black;
+  color: #fff;
+  width: 90px;
+  height: 40px;
+  }
+
+  @media (max-width:600px){
+    header{padding:14vw 6vw 10vw;}
+    section#fleet{padding:10vw 6vw;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Roadbound Rentals</p>
+  <h1>Go further<br><span>than the map says.</span></h1>
+  <p class="sub">A small fleet, kept honest. Pick a car, see the price up front, and know right away if it's free for your dates.</p>
+  <button class="browse-btn" onclick="document.getElementById('fleet').scrollIntoView({behavior:'smooth'})">
+    Browse the fleet
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 4v16m0 0l-6-6m6 6l6-6"/>
+    </svg>
+  </button>
+</header>
+
+<section id="fleet">
+  <div class="fleet-head">
+    <h2>The fleet</h2>
+    <p>7 CARS · UPDATED DAILY</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card" tabindex="0" data-name="City Hatch" data-meta="Compact · 4 seats · Manual" data-price="$38" data-available="true" data-img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80" alt="Compact hatchback">
+        <span class="status available">Available</span>
+      </div>
+      <div class="card-body">
+        <h3>City Hatch</h3>
+        <p class="card-meta">Compact · 4 seats · Manual</p>
+        <div class="price-row">
+          <p class="price">$38<span> /day</span></p>
+          <button class="reserve-btn">Available</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Highway Sedan" data-meta="Mid-size · 5 seats · Automatic" data-price="$52" data-available="false" data-img="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80" alt="Sedan">
+        <span class="status unavailable">Booked</span>
+      </div>
+      <div class="card-body">
+        <h3>Highway Sedan</h3>
+        <p class="card-meta">Mid-size · 5 seats · Automatic</p>
+        <div class="price-row">
+          <p class="price">$52<span> /day</span></p>
+          <button class="reserve-btn" disabled>Unavailable</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Trailhead SUV" data-meta="SUV · 5 seats · 4WD" data-price="$74" data-available="true" data-img="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80" alt="SUV">
+        <span class="status available">Available</span>
+      </div>
+      <div class="card-body">
+        <h3>Trailhead SUV</h3>
+        <p class="card-meta">SUV · 5 seats · 4WD</p>
+        <div class="price-row">
+          <p class="price">$74<span> /day</span></p>
+          <button class="reserve-btn">Available</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Backroad Pickup" data-meta="Truck · 5 seats · 4WD" data-price="$81" data-available="true" data-img="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=600&q=80" alt="Pickup truck">
+        <span class="status available">Available</span>
+      </div>
+      <div class="card-body">
+        <h3>Backroad Pickup</h3>
+        <p class="card-meta">Truck · 5 seats · 4WD</p>
+        <div class="price-row">
+          <p class="price">$81<span> /day</span></p>
+          <button class="reserve-btn">Available</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Coastline Convertible" data-meta="Sport · 2 seats · Automatic" data-price="$96" data-available="false" data-img="https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=600&q=80" alt="Convertible">
+        <span class="status unavailable">Booked</span>
+      </div>
+      <div class="card-body">
+        <h3>Coastline Convertible</h3>
+        <p class="card-meta">Sport · 2 seats · Automatic</p>
+        <div class="price-row">
+          <p class="price">$96<span> /day</span></p>
+          <button class="reserve-btn" disabled>Unavailable</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Family Minivan" data-meta="Van · 7 seats · Automatic" data-price="$68" data-available="true" data-img="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=600&q=80" alt="Minivan">
+        <span class="status available">Available</span>
+      </div>
+      <div class="card-body">
+        <h3>Family Minivan</h3>
+        <p class="card-meta">Van · 7 seats · Automatic</p>
+        <div class="price-row">
+          <p class="price">$68<span> /day</span></p>
+          <button class="reserve-btn">Available</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" tabindex="0" data-name="Volt Electric" data-meta="Compact · 4 seats · Electric" data-price="$58" data-available="true" data-img="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?auto=format&fit=crop&w=900&q=80">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?auto=format&fit=crop&w=600&q=80" alt="Electric car">
+        <span class="status available">Available</span>
+      </div>
+      <div class="card-body">
+        <h3>Volt Electric</h3>
+        <p class="card-meta">Compact · 4 seats · Electric</p>
+        <div class="price-row">
+          <p class="price">$58<span> /day</span></p>
+          <button class="reserve-btn">Available</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
+    <div class="modal-img">
+      <img id="modal-img" src="" alt="">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <span class="status" id="modal-status"></span>
+    </div>
+    <div class="modal-body">
+      <h3 id="modal-name"></h3>
+      <p class="card-meta" id="modal-meta"></p>
+      <div class="price-row">
+        <p class="price" id="modal-price"></p>
+        <button class="reserve-btn" id="modal-reserve">Reserve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('overlay');
+  const modalImg = document.getElementById('modal-img');
+  const modalName = document.getElementById('modal-name');
+  const modalMeta = document.getElementById('modal-meta');
+  const modalPrice = document.getElementById('modal-price');
+  const modalStatus = document.getElementById('modal-status');
+  const modalReserve = document.getElementById('modal-reserve');
+  const modalClose = document.getElementById('modal-close');
+
+  function openModal(card){
+    const available = card.dataset.available === 'true';
+    modalImg.src = card.dataset.img;
+    modalImg.alt = card.dataset.name;
+    modalName.textContent = card.dataset.name;
+    modalMeta.textContent = card.dataset.meta;
+    modalPrice.innerHTML = card.dataset.price + '<span> /day</span>';
+    modalStatus.textContent = available ? 'Available' : 'Booked';
+    modalStatus.className = 'status ' + (available ? 'available' : 'unavailable');
+    modalReserve.disabled = !available;
+    modalReserve.textContent = available ? 'Available' : 'Unavailable';
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.reserve-btn')) return; // let reserve button work independently
+      openModal(card);
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        openModal(card);
+      }
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Add this below your existing JavaScript
+function loadCarData() {
+  // Grab data from storage, or use an empty object if nothing exists yet
+  const savedFleet = JSON.parse(localStorage.getItem('roadboundFleet')) || {};
+
+  document.querySelectorAll('.card').forEach(card => {
+    const carName = card.dataset.name;
+    
+    // If the admin has set a status for this car, apply it
+    if (savedFleet[carName] !== undefined) {
+      const isAvailable = savedFleet[carName];
+      
+      // Update dataset
+      card.dataset.available = isAvailable;
+      
+      // Update visual elements
+      const statusBadge = card.querySelector('.status');
+      const reserveBtn = card.querySelector('.reserve-btn');
+
+      statusBadge.textContent = isAvailable ? 'Available' : 'Booked';
+      statusBadge.className = 'status ' + (isAvailable ? 'available' : 'unavailable');
+      reserveBtn.textContent = isAvailable ? 'Available' : 'Unavailable';
+      reserveBtn.disabled = !isAvailable;
+    }
+  });
+}
+
+// Run this as soon as the script loads
+loadCarData();
+</script>
+
+</body>
+</html>
