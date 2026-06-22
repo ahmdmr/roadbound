@@ -1,11 +1,14 @@
 const express = require('express');
+const basicAuth = require('express-basic-auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 1. Middleware: This allows your server to understand JSON data sent from the admin page
 app.use(express.json());
-
-// 2. Serve static files (your HTML/CSS)
+app.use('/admin.html', basicAuth({
+  users: { 'admin': process.env.ADMIN_PASSWORD || 'changeme123' },
+  challenge: true
+}));
 app.use(express.static(__dirname));
 
 // 3. Our "Database" 
