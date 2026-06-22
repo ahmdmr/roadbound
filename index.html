@@ -454,7 +454,8 @@
   const modalClose = document.getElementById('modal-close');
 
   function openModal(card){
-    const available = card.dataset.available === 'true';
+    // Note: We use String() here to make sure it handles both string "true" and boolean true safely
+    const available = String(card.dataset.available) === 'true'; 
     modalImg.src = card.dataset.img;
     modalImg.alt = card.dataset.name;
     modalName.textContent = card.dataset.name;
@@ -494,35 +495,35 @@
     if (e.key === 'Escape') closeModal();
   });
 
-  // Add this below your existing JavaScript
-function loadCarData() {
-  // Grab data from storage, or use an empty object if nothing exists yet
-  const savedFleet = JSON.parse(localStorage.getItem('roadboundFleet')) || {};
+  // --- NEW SERVER DATA LOGIC ---
+  async function loadCarData() {
+    // Ask the server for the data
+    const response = await fetch('/api/fleet');
+    const savedFleet = await response.json();
 
-  document.querySelectorAll('.card').forEach(card => {
-    const carName = card.dataset.name;
-    
-    // If the admin has set a status for this car, apply it
-    if (savedFleet[carName] !== undefined) {
-      const isAvailable = savedFleet[carName];
+    // Loop through all the HTML cards
+    document.querySelectorAll('.card').forEach(card => {
+      const carName = card.dataset.name;
       
-      // Update dataset
-      card.dataset.available = isAvailable;
-      
-      // Update visual elements
-      const statusBadge = card.querySelector('.status');
-      const reserveBtn = card.querySelector('.reserve-btn');
+      // If the server knows about this car, update the HTML
+      if (savedFleet[carName] !== undefined) {
+        const isAvailable = savedFleet[carName];
+        
+        card.dataset.available = isAvailable;
+        
+        const statusBadge = card.querySelector('.status');
+        const reserveBtn = card.querySelector('.reserve-btn');
 
-      statusBadge.textContent = isAvailable ? 'Available' : 'Booked';
-      statusBadge.className = 'status ' + (isAvailable ? 'available' : 'unavailable');
-      reserveBtn.textContent = isAvailable ? 'Available' : 'Unavailable';
-      reserveBtn.disabled = !isAvailable;
-    }
-  });
-}
+        statusBadge.textContent = isAvailable ? 'Available' : 'Booked';
+        statusBadge.className = 'status ' + (isAvailable ? 'available' : 'unavailable');
+        reserveBtn.textContent = isAvailable ? 'Available' : 'Unavailable';
+        reserveBtn.disabled = !isAvailable;
+      }
+    });
+  }
 
-// Run this as soon as the script loads
-loadCarData();
+  // Run immediately when page loads
+  loadCarData();
 </script>
 
 </body>

@@ -14,41 +14,47 @@
   <div id="admin-panel"></div>
 
   <script>
-    // The master list of cars
-    const cars = ["City Hatch", "Highway Sedan", "Trailhead SUV", "Backroad Pickup", "Coastline Convertible", "Family Minivan", "Volt Electric"];
-    const panel = document.getElementById('admin-panel');
-    
-    // Load existing data or create an empty slate
-    let fleetData = JSON.parse(localStorage.getItem('roadboundFleet')) || {};
+  const cars = ["City Hatch", "Highway Sedan", "Trailhead SUV", "Backroad Pickup", "Coastline Convertible", "Family Minivan", "Volt Electric"];
+  const panel = document.getElementById('admin-panel');
 
-    function renderAdmin() {
-      panel.innerHTML = '';
-      cars.forEach(car => {
-        // Default to true if not set yet
-        const isAvailable = fleetData[car] !== undefined ? fleetData[car] : true; 
-        
-        panel.innerHTML += `
-          <div class="admin-card">
-            <span><strong>${car}</strong> - ${isAvailable ? 'Available' : 'Booked'}</span>
-            <button onclick="toggleStatus('${car}')">
-              Mark ${isAvailable ? 'Unavailable' : 'Available'}
-            </button>
-          </div>
-        `;
-      });
-    }
+  // 1. Fetch data from the server
+  async function loadAdminData() {
+    const response = await fetch('/api/fleet');
+    const fleetData = await response.json();
+    renderAdmin(fleetData);
+  }
 
-    // Toggle the data and save it to the browser
-    window.toggleStatus = function(carName) {
-      const currentState = fleetData[carName] !== undefined ? fleetData[carName] : true;
-      fleetData[carName] = !currentState; 
+  // 2. Draw the dashboard
+  function renderAdmin(fleetData) {
+    panel.innerHTML = '';
+    cars.forEach(car => {
+      const isAvailable = fleetData[car]; 
       
-      // Save back to storage
-      localStorage.setItem('roadboundFleet', JSON.stringify(fleetData));
-      renderAdmin(); // Refresh the admin UI
-    };
+      panel.innerHTML += `
+        <div class="admin-card">
+          <span><strong>${car}</strong> - ${isAvailable ? 'Available' : 'Booked'}</span>
+          <button onclick="toggleStatus('${car}')">
+            Mark ${isAvailable ? 'Unavailable' : 'Available'}
+          </button>
+        </div>
+      `;
+    });
+  }
 
-    renderAdmin();
-  </script>
+  // 3. Send just the car name to your /toggle endpoint
+  window.toggleStatus = async function(carName) {
+    await fetch('/api/fleet/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ carName: carName }) // The server does the flipping!
+    });
+
+    // Refresh the screen
+    loadAdminData();
+  };
+
+  // Start the dashboard
+  loadAdminData();
+</script>
 </body>
 </html>
