@@ -1,6 +1,7 @@
 const express = require('express');
 const basicAuth = require('express-basic-auth');
 const app = express();
+const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 
 // 1. Middleware: This allows your server to understand JSON data sent from the admin page
@@ -11,17 +12,8 @@ app.use('/admin.html', basicAuth({
 }));
 app.use(express.static(__dirname));
 
-// 3. Our "Database" 
-// For this step, we are storing the data in the server's memory. 
-let fleetData = {
-  "City Hatch": true,
-  "Highway Sedan": false,
-  "Trailhead SUV": true,
-  "Backroad Pickup": true,
-  "Coastline Convertible": false,
-  "Family Minivan": true,
-  "Volt Electric": true
-};
+// 3. Our "Database"
+let fleetData = JSON.parse(fs.readFileSync('fleetData.json', 'utf8'));
 
 // 4. API Endpoint (READ)
 // When index.html or admin.html asks for data, send them the fleetData object
@@ -37,6 +29,7 @@ app.post('/api/fleet/toggle', (req, res) => {
   // If the car exists in our database, flip its true/false status
   if (fleetData[carName] !== undefined) {
     fleetData[carName] = !fleetData[carName]; 
+    fs.writeFileSync('fleetData.json', JSON.stringify(fleetData, null, 2));
     console.log(`Updated: ${carName} is now ${fleetData[carName] ? 'Available' : 'Booked'}`);
     res.json({ success: true, newData: fleetData });
   } else {
